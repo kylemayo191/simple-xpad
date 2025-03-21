@@ -60,7 +60,7 @@ std::tuple<std::string, XPadType> XPad::getAvailableControllerPath() {
         std::string candidateName(dp->d_name);
 
         // Filter out entries that don't start with "event"
-        if (candidateName.rfind("js", 0) == std::string::npos) {
+        if (candidateName.rfind("event", 0) == std::string::npos) {
             continue;
         }
 
@@ -82,7 +82,7 @@ std::tuple<std::string, XPadType> XPad::getAvailableControllerPath() {
         std::string candidateVisibleName(rawCandidateVisibleName, candidateVisibleNameLength - 1);
 
         // Filter out non-xbox devices
-        if (candidateVisibleName.find("0") == std::string::npos) {
+        if (candidateVisibleName.find("5") == std::string::npos) {
             continue;
         }
 
