@@ -82,7 +82,7 @@ std::tuple<std::string, XPadType> XPad::getAvailableControllerPath() {
         std::string candidateVisibleName(rawCandidateVisibleName, candidateVisibleNameLength - 1);
 
         // Filter out non-xbox devices
-        if (candidateVisibleName.find("Xbox") == std::string::npos) {
+        if (candidateVisibleName.find("5") == std::string::npos) {
             continue;
         }
 
