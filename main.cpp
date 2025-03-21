@@ -1,10 +1,31 @@
 #include <iostream>
 #include "src/XPad.hpp"
+#include <wiringPi.h>
+#include <softPwm.h>
+#include <iostream>
+
+#define DIR_PIN 22
+#define PWM_PIN 26  // GPIO12 (BCM) corresponds to wiringPi pin 26
+// these gpios are mapped stupid, see https://pinout.xyz/pinout/wiringpi
+
 
 int main() {
 
-    // Instantiate object
+    int motorOneDir = 1;
+    // Instantiate control pad object
     XPad pad;
+    
+    // Initialize wiringPi
+    if (wiringPiSetup() == -1) {
+        std::cerr << "Setup failed!" << std::endl;
+        return 1;
+    }
+    
+    // Set up PWM output
+    softPwmCreate(PWM_PIN, 0, 100);
+    
+    // Set up DIR output
+    pinMode(DIR_PIN, 1);
 
     // Event loop
 #pragma clang diagnostic push
@@ -38,17 +59,30 @@ int main() {
         std::cout << "Event: " << event.getSourceName() << "\n";
 
         if (event.getNativeType() == XEventType::EVENT_BUTTON) {
-            std::cout << "\t[Button]: Pressed: " << (event.isButtonPressed() ? "true" : "false")
-                      << ", Released: " << (event.isButtonReleased() ? "true" : "false") << "\n";
+            // std::cout << "\t[Button]: Pressed: " << (event.isButtonPressed() ? "true" : "false")
+            //           << ", Released: " << (event.isButtonReleased() ? "true" : "false") << "\n";
 
-            if (event.getSource() == XEventSource::BUTTON_X) {
-                std::cout << "Trigger rumble (1)\n";
-                pad.rumble(1);
-            }
+            // if (event.getSource() == XEventSource::BUTTON_X) {
+            //     std::cout << "Trigger rumble (1)\n";
+            //     pad.rumble(1);
+            // }
 
-            if (event.getSource() == XEventSource::BUTTON_Y) {
-                std::cout << "Trigger rumble (3)\n";
-                pad.rumble(3);
+            // if (event.getSource() == XEventSource::BUTTON_Y) {
+            //     std::cout << "Trigger rumble (3)\n";
+            //     pad.rumble(3);
+            // }
+            if (event.getSource() == XEventSource::BUTTON_B && event.isButtonPressed()) {
+                std::cout << "Switching motor direction\n";
+                if(motorOneDir == 0)
+                {
+                    motorOneDir = 1;
+                    digitalWrite(DIR_PIN, motorOneDir);
+                }
+                else
+                {
+                    motorOneDir = 0;
+                    digitalWrite(DIR_PIN, motorOneDir);
+                }
             }
         }
 
@@ -60,11 +94,20 @@ int main() {
                     XEventSource::ANALOG_RIGHT_JOYSTICK_X,
                     XEventSource::ANALOG_RIGHT_JOYSTICK_Y,
             };
-            for (const auto &joystickSource: Sources) {
-                if (event.getSource() == joystickSource) {
-                    std::cout << "\t[Joystick] Position: " << event.getJoystickValue() << "\n";
-                }
+            if(event.getSource() == Sources[1]) // Y axis of left joystick
+            {
+                float leftJoystickValueY = event.getJoystickValue();
+                float leftJoystickValueY = event.getJoystickValue();
+                softPwmWrite(PWM_PIN, leftJoystickValue);
+                //else
+                   // softPwmWrite(PWM_PIN, -leftJoystickValue);
+ 
             }
+            // for (const auto &joystickSource: Sources) {
+            //     if (event.getSource() == joystickSource) {
+            //         std::cout << "\t[Joystick] Position: " << event.getJoystickValue() << "\n";
+            //     }
+            // }
 
             // Trigger
             const XEventSource triggerSources[] = {
@@ -72,8 +115,16 @@ int main() {
                     XEventSource::ANALOG_RIGHT_TRIGGER,
             };
             for (const auto &triggerSource: triggerSources) {
-                if (event.getSource() == triggerSource) {
-                    std::cout << "\t[Trigger] Position: " << event.getTriggerValue() << "\n";
+                if (event.getSource() == triggerSources[0]) {
+                    std::cout << "\t[Left Trigger] Position: " << event.getTriggerValue() << "\n";
+                    
+                   // softPwmWrite(PWM_PIN, 50 + (event.getTriggerValue()/2));
+
+                }
+                else
+                {
+                    std::cout << "\t[Right Trigger] Position: " << event.getTriggerValue() << "\n";
+                   // softPwmWrite(PWM_PIN, (event.getTriggerValue()/2));
                 }
             }
 

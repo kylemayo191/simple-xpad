@@ -7,3 +7,7 @@ add_executable(simple-xpad
         main.cpp
         src/XPad.cpp
         src/XEvent.cpp)
+
+find_library(wiringPi_LIB wiringPi)
+target_link_libraries(simple-xpad ${wiringPi_LIB})
+
